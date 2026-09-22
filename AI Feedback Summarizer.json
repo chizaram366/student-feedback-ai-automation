@@ -1,0 +1,126 @@
+{
+  "name": "AI Feedback Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Student Feedback Form",
+        "formDescription": "Submit feedback and the AI will summarize and categorize it.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Feedback",
+              "fieldType": "textarea",
+              "placeholder": "Enter your feedback here...",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "23464d2f-1102-4eca-abad-e484146dc382",
+      "name": "Student Feedback Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "4b253be3-c836-4236-85ad-f923f334cd97"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"model\": \"openai/gpt-4o-mini\", \"messages\": [ { \"role\": \"system\", \"content\": \"You are a student feedback assistant. Summarize the user's feedback clearly, identify its category, and suggest one useful next step. Never invent information. If the feedback is empty or unclear, say that more information is needed. Keep the answer concise.\" }, { \"role\": \"user\", \"content\": \"Analyze this student feedback: \" + $json.Feedback } ] } }}",
+        "options": {}
+      },
+      "id": "8464b556-6506-47b3-92da-9c5d38042831",
+      "name": "AI Process - OpenRouter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "G69au1O85HblKEXf",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "output",
+              "name": "AI Summary",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "daf5a904-407c-4af8-8a5e-44a6625af613",
+      "name": "Final Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Student Feedback Form": {
+      "main": [
+        [
+          {
+            "node": "AI Process - OpenRouter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Process - OpenRouter": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3b04e631-efde-4db4-856c-8fc0526b002c",
+  "meta": {
+    "instanceId": "2da25be2f94722e122e2147848d6382f29951679d0c6fed71e417ec18cbbbdac"
+  },
+  "nodeGroups": [],
+  "id": "6uFlQmpXqcF42EPG",
+  "tags": []
+}
